@@ -26,6 +26,8 @@ class ReasonGNNLayer(BaseGNNLayer):
     def init_layers(self, args):
         entity_dim = self.entity_dim
         self.softmax_d1 = nn.Softmax(dim=1)
+        # identity module: lets a forward hook read the per-fact message prior (the Recorder's edge "alpha")
+        self.fact_prior_probe = nn.Identity()
         self.score_func = nn.Linear(in_features=entity_dim, out_features=1)
         self.glob_lin = nn.Linear(in_features=entity_dim, out_features=entity_dim)
         self.lin = nn.Linear(in_features=2*entity_dim, out_features=entity_dim)
@@ -67,6 +69,7 @@ class ReasonGNNLayer(BaseGNNLayer):
         fact_query = torch.index_select(instruction, dim=0, index=self.batch_ids)
         fact_val = F.relu(rel_linear(fact_rel) * fact_query)
         fact_prior = torch.sparse.mm(self.head2fact_mat, curr_dist.view(-1, 1))
+        fact_prior = self.fact_prior_probe(fact_prior)
 
         fact_val = fact_val * fact_prior
         
@@ -88,6 +91,7 @@ class ReasonGNNLayer(BaseGNNLayer):
         fact_query = torch.index_select(instruction, dim=0, index=self.batch_ids)
         fact_val = F.relu(rel_linear(fact_rel) * fact_query)
         fact_prior = torch.sparse.mm(self.tail2fact_mat, curr_dist.view(-1, 1))
+        fact_prior = self.fact_prior_probe(fact_prior)
         
 
         fact_val = fact_val * fact_prior

@@ -437,6 +437,9 @@ class BasicDataLoader(object):
         batch_rels = np.array([], dtype=int)
         batch_tails = np.array([], dtype=int)
         batch_ids = np.array([], dtype=int)
+        # side channel for the Recorder: per question, the index of the source triple of every fact in the batch
+        # edge list (-1 for self loops); does not influence the returned tensors
+        self.last_fact_triple_index = []
         #print(sample_ids)
         for i, sample_id in enumerate(sample_ids):
             index_bias = i * self.max_local_entity
@@ -455,6 +458,7 @@ class BasicDataLoader(object):
             batch_rels = np.append(batch_rels, real_rel_list)
             batch_tails = np.append(batch_tails, real_tail_list)
             batch_ids = np.append(batch_ids, np.full(len(mask_index), i, dtype=int))
+            fact_source = list(mask_index)
             if self.use_self_loop:
                 num_ent_now = len(self.global2local_entity_maps[sample_id])
                 ent_array = np.array(range(num_ent_now), dtype=int) + index_bias
@@ -463,6 +467,8 @@ class BasicDataLoader(object):
                 batch_tails = np.append(batch_tails, ent_array)
                 batch_rels = np.append(batch_rels, rel_array)
                 batch_ids = np.append(batch_ids, np.full(num_ent_now, i, dtype=int))
+                fact_source += [-1] * num_ent_now
+            self.last_fact_triple_index.append(np.array(fact_source, dtype=int))
         fact_ids = np.array(range(len(batch_heads)), dtype=int)
         head_count = Counter(batch_heads)
         # tail_count = Counter(batch_tails)
