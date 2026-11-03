@@ -1,5 +1,5 @@
 
-from utils import create_logger
+from utils import append_jsonl, create_logger
 import time
 import numpy as np
 import os, math
@@ -121,10 +121,13 @@ class Trainer_KBQA(object):
             
             self.logger.info("Epoch: {}, loss : {:.4f}, time: {}".format(epoch + 1, loss, time.time() - st))
             self.logger.info("Training h1 : {:.4f}, f1 : {:.4f}".format(np.mean(h1_list_all), np.mean(f1_list_all)))
+            self.log_metrics({"epoch": epoch, "loss": float(loss), "epoch_seconds": time.time() - st,
+                              "train_h1": float(np.mean(h1_list_all)), "train_f1": float(np.mean(f1_list_all))})
             
             if (epoch + 1) % eval_every == 0:
                 eval_f1, eval_h1 = self.evaluate(self.valid_data, self.test_batch_size)
                 self.logger.info("EVAL F1: {:.4f}, H1: {:.4f}".format(eval_f1, eval_h1))
+                self.log_metrics({"val/epoch": epoch, "val/f1": float(eval_f1), "val/h1": float(eval_h1)})
                 # eval_f1, eval_h1 = self.evaluate(self.test_data, self.test_batch_size)
                 # self.logger.info("TEST F1: {:.4f}, H1: {:.4f}".format(eval_f1, eval_h1))
                 do_test = False
@@ -141,6 +144,7 @@ class Trainer_KBQA(object):
 
                 eval_f1, eval_h1 = self.evaluate(self.test_data, self.test_batch_size)
                 self.logger.info("TEST F1: {:.4f}, H1: {:.4f}".format(eval_f1, eval_h1))
+                self.log_metrics({"test/epoch": epoch, "test/f1": float(eval_f1), "test/h1": float(eval_h1)})
                 # if do_test:
                 #     eval_f1, eval_h1 = self.evaluate(self.test_data, self.test_batch_size)
                 #     self.logger.info("TEST F1: {:.4f}, H1: {:.4f}".format(eval_f1, eval_h1))
@@ -162,6 +166,9 @@ class Trainer_KBQA(object):
         self.logger.info('Train Done! Evaluate on testset with saved model')
         print("End Training------------------")
         self.evaluate_best()
+
+    def log_metrics(self, row):
+        append_jsonl(os.path.join(self.args['checkpoint_dir'], "{}_metrics.jsonl".format(self.args['experiment_name'])), row)
 
     def evaluate_best(self):
         filename = os.path.join(self.args['checkpoint_dir'], "{}-h1.ckpt".format(self.args['experiment_name']))
@@ -189,6 +196,9 @@ class Trainer_KBQA(object):
         self.logger.info("EVAL F1: {:.4f}, H1: {:.4f}".format(eval_f1, eval_hits))
         test_f1, test_hits = self.evaluate(self.test_data, self.test_batch_size, write_info=True)
         self.logger.info("TEST F1: {:.4f}, H1: {:.4f}".format(test_f1, test_hits))
+        import json
+        with open(os.path.join(self.args['checkpoint_dir'], "{}_eval_metrics.json".format(self.args['experiment_name'])), "w") as f:
+            json.dump({"valid": {"f1": float(eval_f1), "h1": float(eval_hits)}, "test": {"f1": float(test_f1), "h1": float(test_hits)}}, f)
 
     def train_epoch(self):
         self.model.train()

@@ -26,6 +26,14 @@ def create_logger(args):
     return logger
 
 
+def append_jsonl(path, obj):
+    """One JSON object per line (read later by the KGQA tracking code)."""
+    import json
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(obj) + "
+")
+
+
 def get_dict(data_folder, filename):
     filename_true = os.path.join(data_folder, filename)
     word2id = dict()

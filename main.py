@@ -30,6 +30,9 @@ def main():
     if not os.path.exists(args.checkpoint_dir):
         os.makedirs(args.checkpoint_dir, exist_ok=True)
     logger = create_logger(args)
+    import json
+    with open(os.path.join(args.checkpoint_dir, args.experiment_name + "_args.json"), "w") as f_args:
+        json.dump(vars(args), f_args)
     trainer = Trainer_KBQA(args=vars(args), model_name=args.model_name, logger=logger)
     if not args.is_eval:
         trainer.train(0, args.num_epoch - 1)
