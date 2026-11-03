@@ -10,10 +10,6 @@ from torch.nn import LayerNorm
 import warnings
 warnings.filterwarnings("ignore")
 import os
-try:
-    os.environ['TRANSFORMERS_CACHE'] = '/export/scratch/costas/home/mavro016/.cache'
-except:
-    pass
 
 from .base_encoder import BaseInstruction
 

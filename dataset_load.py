@@ -13,10 +13,6 @@ from transformers import AutoTokenizer
 import time
 
 import os
-try:
-    os.environ['TRANSFORMERS_CACHE'] = '/export/scratch/costas/home/mavro016/.cache'
-except:
-    pass
 
 
 class BasicDataLoader(object):
@@ -46,7 +42,7 @@ class BasicDataLoader(object):
         skip_index = set()
         index = 0
 
-        with open(data_file) as f_in:
+        with open(data_file, encoding='utf-8') as f_in:
             for line in tqdm(f_in):
                 if index == config['max_train'] and data_type == "train": break  #break if we reach max_question_size
                 line = json.loads(line)
