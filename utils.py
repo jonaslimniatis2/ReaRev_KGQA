@@ -30,8 +30,7 @@ def append_jsonl(path, obj):
     """One JSON object per line (read later by the KGQA tracking code)."""
     import json
     with open(path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(obj) + "
-")
+        f.write(json.dumps(obj) + "\n")
 
 
 def get_dict(data_folder, filename):
