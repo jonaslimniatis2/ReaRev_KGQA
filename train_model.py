@@ -23,8 +23,10 @@ class Trainer_KBQA(object):
         self.args = args
         self.logger = logger
         self.best_dev_performance = 0.0
-        self.best_h1 = 0.0
-        self.best_f1 = 0.0
+        # -1.0 (upstream: 0.0) so that the first evaluation always writes a checkpoint; otherwise a model with
+        # dev h1 = 0 saves nothing and evaluate_best() fails on the missing -h1.ckpt
+        self.best_h1 = -1.0
+        self.best_f1 = -1.0
         self.best_h1b = 0.0
         self.best_f1b = 0.0
         self.eps = args['eps']
